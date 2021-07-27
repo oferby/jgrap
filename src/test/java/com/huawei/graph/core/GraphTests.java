@@ -7,10 +7,14 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +24,12 @@ import java.util.Set;
 @SpringBootTest
 class GraphTests {
 
+	Logger logger = LoggerFactory.getLogger(GraphTests.class);
+
 	@Autowired
 	private ServiceFileRepository serviceFileRepository;
+
+	FileWriter myWriter;
 
 	@Test
 	void testGraph() {
@@ -50,50 +58,86 @@ class GraphTests {
 
 
 	@Test
-	public void findCircles() {
+	public void findCircles() throws IOException {
+
+		myWriter = new FileWriter("/tmp/log.txt");
+
 
 		List<Service> serviceList = serviceFileRepository.getServiceList();
 
-		Set<Service>visited = new HashSet<>();
-		List<Service> stack = new ArrayList<>();
+		Set<Service> rootServices = new HashSet<>(serviceList);
 
 		for (Service s: serviceList) {
+
+			if (s.getServiceList() != null) {
+
+				for (Service target: s.getServiceList() ) {
+					rootServices.remove(target);
+				}
+
+			}
+
+		}
+
+
+
+		Set<Service>visited = new HashSet<>();
+
+		for (Service s: rootServices) {
 
 			if (visited.contains(s)){
 				continue;
 			}
 
-			scan(s, visited, stack, new HashSet<>());
+			scan(s, visited, new ArrayList<>(), new HashSet<>());
 
 		}
 
-
+		myWriter.close();
 
 	}
 
 
-	private void scan(Service service, Set<Service>visited, List<Service> stack, Set<Service>stackVisited) {
+	private void scan(Service service, Set<Service>visited, List<Service> stack, Set<Service>stackVisited) throws IOException {
 
-		visited.add(service);
 		stack.add(service);
 
+		if (stackVisited.contains(service)) {
+
+			List<Service>circle = new ArrayList<>();
+			int i = 0;
+			while (!stack.get(i).equals(service) ){
+				i++;
+			}
+
+			for (int j = i; j < stack.size(); j++) {
+				circle.add(stack.get(j));
+			}
+
+			System.out.println("CIRCLE: " + circle);
+			myWriter.write("CIRCLE: " + circle+ "\n");
+			int last = stack.size();
+			stack.remove(last-1);
+			return;
+		}
+
+		stackVisited.add(service);
+		visited.add(service);
+
+
 		if (service.getServiceList() == null || service.getServiceList().size() == 0) {
-			System.out.println(stack);
+//			logger.debug("PATH: " + stack);
+			System.out.println("PATH: " + stack);
+			myWriter.write("PATH: " + stack + "\n");
+
+			int last = stack.size();
+			stack.remove(last-1);
 			return;
 		}
 
 
+
 		for (Service s: service.getServiceList()) {
-
-			if (stackVisited.contains(s)){
-				stack.add(s);
-				System.out.println(stack);
-				int last = stack.size();
-				stack.remove(last-1);
-				continue;
-			}
-
-			stackVisited.add(s);
 
 			scan(s, visited, stack, stackVisited);
 
@@ -102,7 +146,6 @@ class GraphTests {
 		int last = stack.size();
 		stack.remove(last-1);
 		stackVisited.remove(service);
-
 
 	}
 
