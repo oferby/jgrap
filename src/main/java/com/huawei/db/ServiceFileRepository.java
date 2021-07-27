@@ -1,33 +1,28 @@
-package com.huawei.graph.neo4j;
+package com.huawei.db;
 
-import com.huawei.db.ServiceRepository;
 import com.huawei.model.Service;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.stereotype.Controller;
 
-import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.FileReader;
+import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class TestDB {
+@Controller
+public class ServiceFileRepository {
 
-    @Autowired
-    private ServiceRepository serviceRepository;
+    private List<Service> serviceList;
 
-    @Test
-    public void loadJSON() {
+    public List<Service> getServiceList() {
+        return serviceList;
+    }
 
-        serviceRepository.deleteAll();
+    @PostConstruct
+    private void getServicesFromFile() {
+
         List<Service> serviceList = new ArrayList<>();
         Map<String, Service> serviceMap = new HashMap<>();
 
@@ -58,11 +53,6 @@ public class TestDB {
 
             }
 
-            for (Service s : serviceList ) {
-                serviceRepository.save(s);
-            }
-
-
             JSONArray edges = (JSONArray) jsonObject.get("edges");
 
             int i = 0;
@@ -77,55 +67,20 @@ public class TestDB {
                 System.out.println(i + ": connecting " + from + " to " + to);
                 i++;
 
-//                Service toService = serviceMap.get(to);
-//                Service service = serviceMap.get(from);
-
-                Service fromService = serviceRepository.getByServiceId(from);
-                Service toService = serviceRepository.getByServiceId(to);
+                Service fromService = serviceMap.get(from);
+                Service toService = serviceMap.get(to);
 
                 fromService.addService(toService);
 
-                serviceRepository.save(fromService);
-
             }
-
-
-
-//            List<Service>saveList;
-//
-//            while (!serviceList.isEmpty()) {
-//                saveList = new ArrayList<>();
-//
-//                int j = 0;
-//                while (!serviceList.isEmpty() && j < 10) {
-//                    Service service = serviceList.get(0);
-//                    saveList.add(service);
-//                    serviceList.remove(0);
-//                    j++;
-//                }
-//
-//                serviceRepository.saveAll(serviceList);
-//
-//            }
-
-
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        assert true;
+        this.serviceList = serviceList;
 
     }
-
-
-
-
-
-
-
-
-
 
 }

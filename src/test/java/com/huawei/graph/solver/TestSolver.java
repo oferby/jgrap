@@ -1,5 +1,6 @@
 package com.huawei.graph.solver;
 
+import com.huawei.db.ServiceFileRepository;
 import com.huawei.db.ServiceRepository;
 import com.huawei.model.Service;
 import org.chocosolver.solver.Model;
@@ -33,6 +34,9 @@ public class TestSolver {
 //    @Autowired
 //    private ServiceRepository serviceRepository;
 
+    @Autowired
+    private ServiceFileRepository serviceFileRepository;
+
     @Test
     public void example() {
 
@@ -65,7 +69,7 @@ public class TestSolver {
 
         Model model = new Model("service placement");
 
-        List<Service> services = getServicesFromFile();
+        List<Service> services = serviceFileRepository.getServiceList();
 
 //        List<Service> services = serviceRepository.findAll();
 

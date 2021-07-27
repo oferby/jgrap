@@ -63,4 +63,10 @@ public class Service {
         serviceList.add(service);
     }
 
+    @Override
+    public String toString() {
+        return "Service{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }
