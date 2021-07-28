@@ -67,6 +67,7 @@ class GraphTests {
 
 		Set<Service> rootServices = new HashSet<>(serviceList);
 
+//		find client-only services to start the search with
 		for (Service s: serviceList) {
 
 			if (s.getServiceList() != null) {
@@ -80,8 +81,8 @@ class GraphTests {
 		}
 
 
-
 		Set<Service>visited = new HashSet<>();
+		Set<Service> hasCircle = new HashSet<>();
 
 		for (Service s: rootServices) {
 
@@ -89,7 +90,7 @@ class GraphTests {
 				continue;
 			}
 
-			scan(s, visited, new ArrayList<>(), new HashSet<>());
+			scan(s, visited, new ArrayList<>(), new HashSet<>(), hasCircle);
 
 		}
 
@@ -98,11 +99,23 @@ class GraphTests {
 	}
 
 
-	private void scan(Service service, Set<Service>visited, List<Service> stack, Set<Service>stackVisited) throws IOException {
+	private void scan(Service service, Set<Service>visited, List<Service> stack, Set<Service>stackVisited, Set<Service> hasCircle) throws IOException {
 
 		stack.add(service);
 
+		if (hasCircle.contains(service)) {
+			System.out.println("STOP: " + service + " already in circle");
+			myWriter.write("STOP: " + service + " already in circle\n");
+			myWriter.write("STOP STACK: " + stack + "\n\n");
+			int last = stack.size();
+			stack.remove(last-1);
+			return;
+		}
+
+
 		if (stackVisited.contains(service)) {
+
+			hasCircle.add(service);
 
 			List<Service>circle = new ArrayList<>();
 			int i = 0;
@@ -115,7 +128,7 @@ class GraphTests {
 			}
 
 			System.out.println("CIRCLE: " + circle);
-			myWriter.write("CIRCLE: " + circle+ "\n");
+			myWriter.write("CIRCLE: " + circle+ "\n\n");
 			int last = stack.size();
 			stack.remove(last-1);
 			return;
@@ -128,7 +141,7 @@ class GraphTests {
 		if (service.getServiceList() == null || service.getServiceList().size() == 0) {
 //			logger.debug("PATH: " + stack);
 			System.out.println("PATH: " + stack);
-			myWriter.write("PATH: " + stack + "\n");
+			myWriter.write("PATH: " + stack + "\n\n");
 
 			int last = stack.size();
 			stack.remove(last-1);
@@ -139,7 +152,7 @@ class GraphTests {
 
 		for (Service s: service.getServiceList()) {
 
-			scan(s, visited, stack, stackVisited);
+			scan(s, visited, stack, stackVisited, hasCircle);
 
 		}
 
