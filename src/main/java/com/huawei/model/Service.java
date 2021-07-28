@@ -65,8 +65,6 @@ public class Service {
 
     @Override
     public String toString() {
-        return "Service{" +
-                "name='" + name + '\'' +
-                '}';
+        return "{ Service: " + name + " }";
     }
 }

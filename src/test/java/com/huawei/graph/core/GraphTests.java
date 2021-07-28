@@ -94,12 +94,14 @@ class GraphTests {
 
 		}
 
+		myWriter.write("out of " + visited.size() + " services, " + hasCircle.size() + " services create circles.");
 		myWriter.close();
 
 	}
 
 
-	private void scan(Service service, Set<Service>visited, List<Service> stack, Set<Service>stackVisited, Set<Service> hasCircle) throws IOException {
+	private void scan(Service service, Set<Service>visited, List<Service> stack,
+					  Set<Service>stackVisited, Set<Service> hasCircle) throws IOException {
 
 		stack.add(service);
 
